@@ -10,6 +10,7 @@ namespace Caliburn.Micro
     using System.Linq;
     using System.Collections.Generic;
     using System.Reflection;
+    using System.Text;
     using System.Threading.Tasks;
 #if XFORMS
     using UIElement = global::Xamarin.Forms.Element;
@@ -157,12 +158,12 @@ namespace Caliburn.Micro
                     continue;
                 }
 #endif
-
-                var message = method.Name;
+                // changed 'message' from string to StringBuilder for performance improvement.
+                var builder = new StringBuilder(method.Name);
                 var parameters = method.GetParameters();
 
                 if (parameters.Length > 0) {
-                    message += "(";
+                    builder.Append('(');
 
                     foreach (var parameter in parameters) {
                         var paramName = parameter.Name;
@@ -171,13 +172,15 @@ namespace Caliburn.Micro
                         if (MessageBinder.SpecialValues.ContainsKey(specialValue))
                             paramName = specialValue;
 
-                        message += paramName + ",";
+                        builder.Append(paramName);
+                        builder.Append(',');
                     }
 
-                    message = message.Remove(message.Length - 1, 1);
-                    message += ")";
+                    builder = builder.Remove(builder.Length - 1, 1);
+                    builder.Append(')');
                 }
 
+                var message = builder.ToString();
                 Log.Info("Action Convention Applied: Action {0} on element {1}.", method.Name, message);
                 Message.SetAttach(foundControl, message);
             }
